@@ -142,7 +142,7 @@ struct ContentView: View {
             }
             Button("Cancel", role: .cancel) { pendingImport = nil }
         } message: { payload in
-            Text("A config for \"\(payload.device.displayName)\" was found, and this device already has mappings on this machine.\nHow would you like to import?")
+            Text("The selected config will be applied to the currently active device.\nThis device already has mappings. How would you like to import?")
         }
         .alert("Import Failed", isPresented: $showImportErrorAlert) {
             Button("OK", role: .cancel) {}
@@ -262,10 +262,8 @@ struct ContentView: View {
             let data = try Data(contentsOf: url)
             let payload = try JSONDecoder().decode(ConfigStore.DeviceExport.self, from: data)
 
-            let deviceExists = store.devices.contains(where: { $0.id == payload.device.id })
-            let hasMappings  = !(store.deviceMappings[payload.device.id]?.isEmpty ?? true)
-
-            if deviceExists && hasMappings {
+            // Check if active device has existing mappings
+            if let activeDeviceID = store.activeDeviceID, !(store.deviceMappings[activeDeviceID]?.isEmpty ?? true) {
                 pendingImport = payload
                 showImportMergeAlert = true
             } else {
@@ -282,8 +280,7 @@ struct ContentView: View {
         do {
             let encoder = JSONEncoder()
             let data = try encoder.encode(payload)
-            let importedID = try store.importData(data, mergeStrategy: strategy)
-            store.activeDeviceID = importedID
+            _ = try store.importData(data, mergeStrategy: strategy)
             pendingImport = nil
         } catch {
             importError = error.localizedDescription

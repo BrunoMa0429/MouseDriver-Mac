@@ -158,7 +158,7 @@ struct MappingEditView: View {
             .padding(.top, 12)
         }
         .padding(20)
-        .frame(width: 600)
+        .frame(width: 700)
         .frame(height: 550)
         .onAppear {
             loadExisting()

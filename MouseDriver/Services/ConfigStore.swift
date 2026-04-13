@@ -39,13 +39,31 @@ final class ConfigStore: ObservableObject {
     // MARK: - Device management
 
     func registerDevice(_ device: MouseDevice) {
-        if !devices.contains(where: { $0.id == device.id }) {
+        // Check if there's an existing device with the same vendorID, productID, and serialNumber
+        if let existingDevice = devices.first(where: { MouseDevice.isSameDevice($0, device) }) {
+            // Use the existing device's ID to share the same configuration
+            let updatedDevice = MouseDevice(
+                id: existingDevice.id,
+                vendorID: device.vendorID,
+                productID: device.productID,
+                serialNumber: device.serialNumber,
+                name: device.name
+            )
+            // Update the existing device with the new information
+            if let idx = devices.firstIndex(where: { $0.id == existingDevice.id }) {
+                devices[idx] = updatedDevice
+                save()
+            }
+        } else if !devices.contains(where: { $0.id == device.id }) {
+            // No existing device with the same vendorID, productID, and serialNumber, and no device with the same ID
             devices.append(device)
             save()
-        }
-        // Always update the name in case it changed
-        if let idx = devices.firstIndex(where: { $0.id == device.id }) {
-            devices[idx] = device
+        } else {
+            // Device with the same ID already exists, update its information
+            if let idx = devices.firstIndex(where: { $0.id == device.id }) {
+                devices[idx] = device
+                save()
+            }
         }
     }
 
@@ -142,13 +160,12 @@ final class ConfigStore: ObservableObject {
 
     // MARK: - Export / Import
 
-    /// Returns JSON data for the given device and its mappings.
+    /// Returns JSON data for the given device's mappings.
     func exportData(deviceID: String) throws -> Data {
-        guard let device = devices.first(where: { $0.id == deviceID }) else {
+        guard devices.contains(where: { $0.id == deviceID }) else {
             throw ExportError.deviceNotFound
         }
         let payload = DeviceExport(
-            device: device,
             mappings: deviceMappings[deviceID] ?? []
         )
         let encoder = JSONEncoder()
@@ -156,37 +173,32 @@ final class ConfigStore: ObservableObject {
         return try encoder.encode(payload)
     }
 
-    /// Imports a previously exported JSON.
-    /// - Returns: The device ID of the imported device.
+    /// Imports a previously exported JSON to the active device.
+    /// - Returns: The device ID of the active device.
     @discardableResult
     func importData(_ data: Data, mergeStrategy: ImportMergeStrategy) throws -> String {
+        guard let activeDeviceID = self.activeDeviceID else {
+            throw ExportError.deviceNotFound
+        }
+        
         let payload = try JSONDecoder().decode(DeviceExport.self, from: data)
-        let device = payload.device
 
         switch mergeStrategy {
         case .replace:
-            if !devices.contains(where: { $0.id == device.id }) {
-                devices.append(device)
-            } else if let idx = devices.firstIndex(where: { $0.id == device.id }) {
-                devices[idx] = device
-            }
-            deviceMappings[device.id] = payload.mappings
+            deviceMappings[activeDeviceID] = payload.mappings
 
         case .append:
-            if !devices.contains(where: { $0.id == device.id }) {
-                devices.append(device)
-            }
-            var existing = deviceMappings[device.id] ?? []
+            var existing = deviceMappings[activeDeviceID] ?? []
             for m in payload.mappings {
                 if !existing.contains(where: { $0.id == m.id }) {
                     existing.append(m)
                 }
             }
-            deviceMappings[device.id] = existing
+            deviceMappings[activeDeviceID] = existing
         }
 
         save()
-        return device.id
+        return activeDeviceID
     }
 
     enum ExportError: LocalizedError {
@@ -201,7 +213,6 @@ final class ConfigStore: ObservableObject {
 
     // Codable payload for a single device export file
     struct DeviceExport: Codable {
-        var device: MouseDevice
         var mappings: [ButtonMapping]
     }
 

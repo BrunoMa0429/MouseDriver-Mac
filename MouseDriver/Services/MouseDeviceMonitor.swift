@@ -76,12 +76,27 @@ final class MouseDeviceMonitor {
         let loc: Int    = prop(kIOHIDLocationIDKey)   ?? 0
         let name: String = prop(kIOHIDProductKey)     ?? ""
 
-        return MouseDevice(
+        // Check if there's an existing device in ConfigStore with the same vendorID, productID, and serialNumber
+        let newDevice = MouseDevice(
             id:           MouseDevice.makeID(vendorID: vid, productID: pid, serialNumber: sn, locationID: loc),
             vendorID:     vid,
             productID:    pid,
             serialNumber: sn,
             name:         name
         )
+
+        // Look for existing device with the same vendorID, productID, and serialNumber
+        if let existingDevice = ConfigStore.shared.devices.first(where: { MouseDevice.isSameDevice($0, newDevice) }) {
+            // Use the existing device's ID to ensure configuration is shared
+            return MouseDevice(
+                id:           existingDevice.id,
+                vendorID:     vid,
+                productID:    pid,
+                serialNumber: sn,
+                name:         name
+            )
+        }
+
+        return newDevice
     }
 }
