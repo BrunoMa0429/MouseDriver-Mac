@@ -2,6 +2,10 @@
 
 A powerful macOS mouse driver application that allows users to customize mouse button behaviors, execute keyboard shortcuts, key sequences, and shell commands.
 
+<img src="https://github.com/BrunoMa0429/MouseDriver-Mac/blob/main/MouseDriver/Resources/Assets.xcassets/AppIcon.appiconset/icon_256x256.png">
+
+<img src="https://github.com/BrunoMa0429/MouseDriver-Mac/blob/main/doc/appui_snapshot.png">
+
 ## Features
 
 - **Custom mouse button mapping**: Set different behaviors for different mouse buttons
