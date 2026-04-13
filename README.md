@@ -1,10 +1,15 @@
 # MouseDriver
 
-A powerful macOS mouse driver application that allows users to customize mouse button behaviors, execute keyboard shortcuts, key sequences, and shell commands.
+A macOS mouse driver application that allows users to customize mouse button behaviors, execute keyboard shortcuts, key sequences, and shell commands.
 
 <img src="https://github.com/BrunoMa0429/MouseDriver-Mac/blob/main/MouseDriver/Resources/Assets.xcassets/AppIcon.appiconset/icon_256x256.png">
 
 <img src="https://github.com/BrunoMa0429/MouseDriver-Mac/blob/main/doc/appui_snapshot.png">
+
+## WHY I did it?
+I found an old mouse I used when I was in school ten years ago - the Mad Catz RATM. It has 9 programmable buttons, but the official support has long been discontinued. Without a driver on Mac, it can only function as a regular mouse. So I used AI to create one for it. If you're in a similar situation, feel free to try this app. I welcome everyone to test and maintain it together.
+
+<img src="https://github.com/BrunoMa0429/MouseDriver-Mac/blob/main/doc/mad_catz_ratm.jpg">
 
 ## Features
 
